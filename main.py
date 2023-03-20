@@ -9,7 +9,7 @@ print(chave)
 bot_token = chave[0]
 
 # substituir o valor abaixo pelo id do canal que deseja monitorar
-CANAL_ID = chave[1]
+CANAL_ID = int(chave[1])
 
 # substituir o valor abaixo pelo id do chat que receberá o alerta
 chat_id = [chave[2], chave[3]]
