@@ -52,7 +52,6 @@ def verifica_planilha():
         if texto != 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!':
             texto = 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!'
             bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ ABERTO!')
-    st.write(horario_atual)
     
 # define a função que irá atualizar as planilhas
 def update_data():
