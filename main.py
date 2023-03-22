@@ -1,6 +1,6 @@
 import streamlit as st
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 import datetime
 import schedule
 import telebot
@@ -21,7 +21,7 @@ SCOPE = ['https://www.googleapis.com/auth/spreadsheets']
 SERVICE_ACCOUNT_FILE = st.secrets["gcp_service_account"]
 
 # autenticação do serviço
-creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, SCOPE)
+creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_FILE, scopes=SCOPE,)
 client = gspread.authorize(creds)
 
 # identificador das planilhas
