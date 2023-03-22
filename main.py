@@ -18,7 +18,7 @@ bot = telebot.TeleBot(bot_token)
 
 # credenciais do serviço
 SCOPE = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_FILE = 'creds.json'
+SERVICE_ACCOUNT_FILE = st.secrets["gcp_service_account"]
 
 # autenticação do serviço
 creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, SCOPE)
@@ -89,7 +89,6 @@ def update_data():
 schedule.every(80-datetime.datetime.now().second).seconds.do(update_data)
 
 texto = ''
-
 # loop principal para executar o agendador de tarefas
 while True:
     schedule.run_pending()
