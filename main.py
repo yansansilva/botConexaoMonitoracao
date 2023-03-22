@@ -4,6 +4,7 @@ from google.oauth2.service_account import Credentials
 import datetime
 import schedule
 import telebot
+import pytz
 
 # Define o intervalo de tempo desejado em segundos
 intervalo_tempo = 70
@@ -29,13 +30,16 @@ planilha = st.secrets['lista_id_planilha']['id_planilha']
 SOURCE_SPREADSHEET_ID = planilha[0]
 TARGET_SPREADSHEET_ID = planilha[1]
 
+# Fuso horário brasileiro
+tz = pytz.timezone('America/Sao_Paulo')
+
 # Função que verifica se já passou o intervalo de tempo definido e se houve novas linhas adicionadas na planilha
 def verifica_planilha():
     global texto
     from datetime import datetime
     sheet = client.open_by_key(TARGET_SPREADSHEET_ID).sheet1
     ultima_linha = len(sheet.get_all_values())
-    horario_atual = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    horario_atual = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
     horário_ultima_linha = sheet.acell(f'A{ultima_linha}').value
     ultimo_horario = datetime.strptime(horário_ultima_linha, '%Y-%m-%d %H:%M:%S')
     if (datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - ultimo_horario.timestamp()) > intervalo_tempo:
@@ -48,7 +52,7 @@ def verifica_planilha():
         if texto != 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!':
             texto = 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!'
             bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ ABERTO!')
-    st.write(horario_atual)
+
 # define a função que irá atualizar as planilhas
 def update_data():
     # abre as planilhas e seleciona as primeiras folhas
@@ -59,7 +63,7 @@ def update_data():
     source_data = source_sheet.get_all_records()
 
     # filtra os dados para o dia atual
-    today = datetime.date.today()
+    today = datetime.date.today(tz)
     filtered_data = []
     for row in source_data:
         row_day = datetime.datetime.strptime(row['Hora'], '%Y-%m-%d %H:%M:%S').date()
@@ -86,7 +90,7 @@ def update_data():
     verifica_planilha()
 
 # agenda a execução da função a cada 1 minuto
-schedule.every(80-datetime.datetime.now().second).seconds.do(update_data)
+schedule.every(80-datetime.datetime.now(tz).second).seconds.do(update_data)
 
 texto = ''
 # loop principal para executar o agendador de tarefas
