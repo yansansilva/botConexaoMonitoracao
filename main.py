@@ -1,85 +1,95 @@
 import streamlit as st
-import telebot
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 import datetime
-import time
+import schedule
+import telebot
+
+# Define o intervalo de tempo desejado em segundos
+intervalo_tempo = 70
 
 # Configurações de autenticação do bot Telegram
 chave = st.secrets["lista_chave"]['list_key']
-print(chave)
 bot_token = chave[0]
-
-# substituir o valor abaixo pelo id do canal que deseja monitorar
-CANAL_ID = int(chave[1])
-
-# substituir o valor abaixo pelo id do chat que receberá o alerta
-chat_id = [chave[2], chave[3]]
-
+chat_id = [chave[1], chave[2]]
 
 # Cria uma instância do bot Telegram
 bot = telebot.TeleBot(bot_token)
 
+# credenciais do serviço
+SCOPE = ['https://www.googleapis.com/auth/spreadsheets']
+SERVICE_ACCOUNT_FILE = 'creds.json'
 
-# Define o intervalo de tempo (em segundos) para verificar se há novas mensagens
-INTERVALO_TEMPO_SEM_MENSAGENS = 30*60  # 30 minutos
+# autenticação do serviço
+creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, SCOPE)
+client = gspread.authorize(creds)
 
-# Variáveis para controlar o horário da última mensagem e o último aviso de falta de mensagens
-ultima_mensagem_horario = None
-ultimo_aviso_horario = None
+# identificador das planilhas
+planilha = st.secrets['lista_id_planilha']['id_planilha']
+SOURCE_SPREADSHEET_ID = planilha[0]
+TARGET_SPREADSHEET_ID = planilha[1]
 
-# Função que puxa as mensagens do canal
-def atualizacoes():
-    # Obtém as atualizações do bot
-    atualizacoes = bot.get_updates()
-    # Filtra as mensagens do canal especificado
-    mensagens = [mensagem for mensagem in atualizacoes if
-                 mensagem.channel_post != None and mensagem.channel_post.chat.id == CANAL_ID]
-    return mensagens
-
-# Função que verifica se há novas mensagens no canal
-def verificar_mensagens():
-    global ultima_mensagem_horario, ultimo_aviso_horario, tamanho_mensagens_anterior, texto
-
-    mensagens = atualizacoes()
-
-    if mensagens != [] and tamanho_mensagens_anterior != len(mensagens):
-        # Obtém o horário da primeira mensagem do dia
-        horario_primeira_mensagem = datetime.datetime.fromtimestamp(mensagens[-1].channel_post.date)
-        # Verifica se já passou da meia-noite
-        if not ultima_mensagem_horario or horario_primeira_mensagem > ultima_mensagem_horario:
-            # Atualiza a variável com o horário da última mensagem
-            ultima_mensagem_horario = horario_primeira_mensagem
-            # Envia a mensagem de notificação
-            bot.send_message(chat_id=chat_id[0], text='O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!')
-            if texto != 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!':
-                texto = 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!'
-                bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ ABERTO!')
-        tamanho_mensagens_anterior = len(mensagens)
-
+# Função que verifica se já passou o intervalo de tempo definido e se houve novas linhas adicionadas na planilha
+def verifica_planilha():
+    global texto
+    from datetime import datetime
+    sheet = client.open_by_key(TARGET_SPREADSHEET_ID).sheet1
+    ultima_linha = len(sheet.get_all_values())
+    horario_atual = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    horário_ultima_linha = sheet.acell(f'A{ultima_linha}').value
+    ultimo_horario = datetime.strptime(horário_ultima_linha, '%Y-%m-%d %H:%M:%S')
+    if (datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - ultimo_horario.timestamp()) > intervalo_tempo:
+        bot.send_message(chat_id=chat_id[0], text='PERDA DE CONEXÃO COM A INTERNET!')
+        if texto != 'PERDA DE CONEXÃO COM A INTERNET!':
+            texto = 'PERDA DE CONEXÃO COM A INTERNET!'
+            bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ FECHADO!')
     else:
-        # Verifica se já passou o intervalo de tempo sem receber novas mensagens
-        agora = datetime.datetime.now()
-        if ultimo_aviso_horario and agora - ultimo_aviso_horario < datetime.timedelta(
-                seconds=INTERVALO_TEMPO_SEM_MENSAGENS):
-            return
+        bot.send_message(chat_id=chat_id[0], text='O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!')
+        if texto != 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!':
+            texto = 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!'
+            bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ ABERTO!')
 
-        if not ultima_mensagem_horario or agora - ultima_mensagem_horario > datetime.timedelta(
-                seconds=INTERVALO_TEMPO_SEM_MENSAGENS):
-            # Atualiza a variável com o horário do último aviso
-            ultimo_aviso_horario = agora
-            # Envia a mensagem de alerta
-            bot.send_message(chat_id=chat_id[0], text='PERDA DE CONEXÃO COM A INTERNET!')
-            if texto != 'PERDA DE CONEXÃO COM A INTERNET!':
-                texto = 'PERDA DE CONEXÃO COM A INTERNET!'
-                bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ FECHADO!')
+# define a função que irá atualizar as planilhas
+def update_data():
+    # abre as planilhas e seleciona as primeiras folhas
+    source_sheet = client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1
+    target_sheet = client.open_by_key(TARGET_SPREADSHEET_ID).sheet1
 
-tamanho_mensagens_anterior = 0
+    # pega os dados da origem
+    source_data = source_sheet.get_all_records()
+
+    # filtra os dados para o dia atual
+    today = datetime.date.today()
+    filtered_data = []
+    for row in source_data:
+        row_day = datetime.datetime.strptime(row['Hora'], '%Y-%m-%d %H:%M:%S').date()
+        if row_day == today:
+            filtered_data.append(row)
+
+    # percorre as linhas de horário da planilha de destino
+    target_data = target_sheet.get_all_records()
+    target_sheet.update(f'C{1}:D{1}', [['HORA','POTÊNCIA CLIMATIZAÇÃO']])
+    info_to_update = []
+    dados = []
+    num_linhas = 0
+    for i, row in enumerate(target_data):
+        target_time = datetime.datetime.strptime(row['DATA'][11:-3], '%H:%M').time()
+        for filtered_row in filtered_data:
+            filtered_time = datetime.datetime.strptime(filtered_row['Hora'][11:-3], '%H:%M').time()
+            if filtered_time == target_time:
+                dados = [filtered_row['Hora'], filtered_row['Potência Ativa A']+filtered_row['Potência Ativa B']+filtered_row['Potência Ativa C']]
+        info_to_update.append(dados)
+        num_linhas = i
+    target_sheet.update(f'C2:D{num_linhas+2}', info_to_update)
+    print('Dados atualizados com sucesso!')
+
+    verifica_planilha()
+
+# agenda a execução da função a cada 1 minuto
+schedule.every(80-datetime.datetime.now().second).seconds.do(update_data)
+
 texto = ''
-# Loop infinito para verificar se há novas mensagens
-while True:
-    try:
-        verificar_mensagens()
-    except Exception as e:
-        print(e)
 
-    # Define o intervalo de tempo para verificar novamente se há novas mensagens
-    time.sleep(10)
+# loop principal para executar o agendador de tarefas
+while True:
+    schedule.run_pending()
