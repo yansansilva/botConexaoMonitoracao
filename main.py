@@ -78,7 +78,7 @@ def update_data():
        info_to_update = []
        dados = []
        num_linhas = 0
-    for i, row in enumerate(target_data):
+       for i, row in enumerate(target_data):
            target_time = datetime.datetime.strptime(row['DATA'][11:-3], '%H:%M').time()
            for filtered_row in filtered_data:
                filtered_time = datetime.datetime.strptime(filtered_row['Hora'][11:-3], '%H:%M').time()
