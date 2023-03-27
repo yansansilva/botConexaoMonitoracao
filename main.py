@@ -56,7 +56,7 @@ def verifica_planilha():
 # define a função que irá atualizar as planilhas
 def update_data():
    import time
-    try:
+   try:
     # abre as planilhas e seleciona as primeiras folhas
        source_sheet = client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1
        target_sheet = client.open_by_key(TARGET_SPREADSHEET_ID).sheet1
