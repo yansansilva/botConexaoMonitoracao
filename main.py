@@ -55,39 +55,44 @@ def verifica_planilha():
     
 # define a função que irá atualizar as planilhas
 def update_data():
+    try:
     # abre as planilhas e seleciona as primeiras folhas
-    source_sheet = client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1
-    target_sheet = client.open_by_key(TARGET_SPREADSHEET_ID).sheet1
+       source_sheet = client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1
+       target_sheet = client.open_by_key(TARGET_SPREADSHEET_ID).sheet1
 
     # pega os dados da origem
-    source_data = source_sheet.get_all_records()
+       source_data = source_sheet.get_all_records()
 
     # filtra os dados para o dia atual
-    today = datetime.datetime.now(tz).date()
-    filtered_data = []
-    for row in source_data:
-        row_day = datetime.datetime.strptime(row['Hora'], '%Y-%m-%d %H:%M:%S').date()
-        if row_day == today:
+       today = datetime.datetime.now(tz).date()
+       filtered_data = []
+       for row in source_data:
+           row_day = datetime.datetime.strptime(row['Hora'], '%Y-%m-%d %H:%M:%S').date()
+           if row_day == today:
             filtered_data.append(row)
 
     # percorre as linhas de horário da planilha de destino
-    target_data = target_sheet.get_all_records()
-    target_sheet.update(f'C{1}:D{1}', [['HORA','POTÊNCIA CLIMATIZAÇÃO']])
-    info_to_update = []
-    dados = []
-    num_linhas = 0
+       target_data = target_sheet.get_all_records()
+       target_sheet.update(f'C{1}:D{1}', [['HORA','POTÊNCIA CLIMATIZAÇÃO']])
+       info_to_update = []
+       dados = []
+       num_linhas = 0
     for i, row in enumerate(target_data):
-        target_time = datetime.datetime.strptime(row['DATA'][11:-3], '%H:%M').time()
-        for filtered_row in filtered_data:
-            filtered_time = datetime.datetime.strptime(filtered_row['Hora'][11:-3], '%H:%M').time()
-            if filtered_time == target_time:
-                dados = [filtered_row['Hora'], filtered_row['Potência Ativa A']+filtered_row['Potência Ativa B']+filtered_row['Potência Ativa C']]
-        info_to_update.append(dados)
-        num_linhas = i
-    target_sheet.update(f'C2:D{num_linhas+2}', info_to_update)
-    print('Dados atualizados com sucesso!')
+           target_time = datetime.datetime.strptime(row['DATA'][11:-3], '%H:%M').time()
+           for filtered_row in filtered_data:
+               filtered_time = datetime.datetime.strptime(filtered_row['Hora'][11:-3], '%H:%M').time()
+               if filtered_time == target_time:
+                   dados = [filtered_row['Hora'], filtered_row['Potência Ativa A']+filtered_row['Potência Ativa B']+filtered_row['Potência Ativa C']]
+           info_to_update.append(dados)
+           num_linhas = i
+        target_sheet.update(f'C2:D{num_linhas+2}', info_to_update)
+       print('Dados atualizados com sucesso!')
 
-    verifica_planilha()
+       verifica_planilha()
+
+   except:
+      time.sleep(30)
+      pass
 
 # agenda a execução da função a cada 1 minuto
 schedule.every(80-datetime.datetime.now().second).seconds.do(update_data)
