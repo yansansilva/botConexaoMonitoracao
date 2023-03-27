@@ -86,7 +86,7 @@ def update_data():
                    dados = [filtered_row['Hora'], filtered_row['Potência Ativa A']+filtered_row['Potência Ativa B']+filtered_row['Potência Ativa C']]
            info_to_update.append(dados)
            num_linhas = i
-        target_sheet.update(f'C2:D{num_linhas+2}', info_to_update)
+            target_sheet.update(f'C2:D{num_linhas+2}', info_to_update)
        print('Dados atualizados com sucesso!')
 
        verifica_planilha()
