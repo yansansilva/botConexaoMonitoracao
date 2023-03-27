@@ -92,6 +92,7 @@ def update_data():
        verifica_planilha()
 
    except:
+      print("nao funcionou")
       time.sleep(30)
       pass
 
