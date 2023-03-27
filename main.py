@@ -84,9 +84,9 @@ def update_data():
            filtered_time = datetime.datetime.strptime(filtered_row['Hora'][11:-3], '%H:%M').time()
            if filtered_time == target_time:
                dados = [filtered_row['Hora'], filtered_row['Potência Ativa A']+filtered_row['Potência Ativa B']+filtered_row['Potência Ativa C']]
-        info_to_update.append(dados)
-        num_linhas = i
-        target_sheet.update(f'C2:D{num_linhas+2}', info_to_update)
+       info_to_update.append(dados)
+       num_linhas = i
+       target_sheet.update(f'C2:D{num_linhas+2}', info_to_update)
        print('Dados atualizados com sucesso!')
 
    verifica_planilha()
