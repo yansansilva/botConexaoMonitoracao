@@ -92,7 +92,6 @@ def update_data():
 
         verifica_planilha()
     except:
-        print('entrou aqui')
         bot.send_message(chat_id=chat_id[0], text='LIMITE DE ESCRITA POR MINUTO EXCEDIDO!')
         time.sleep(30)
         pass
