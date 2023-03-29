@@ -97,7 +97,8 @@ def update_data():
         pass
 
 # agenda a execução da função a cada 1 minuto
-schedule.every(80-datetime.datetime.now().second).seconds.do(update_data)
+#schedule.every(80-datetime.datetime.now().second).seconds.do(update_data)
+schedule.every(80-datetime.datetime.now().second).seconds.do(verifica_planilha)
 
 texto = ''
 # loop principal para executar o agendador de tarefas
