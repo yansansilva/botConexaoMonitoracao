@@ -50,9 +50,9 @@ def verifica_planilha():
             texto = 'PERDA DE CONEXÃO COM A INTERNET!'
             bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ FECHADO!')
     else:
-        bot.send_message(chat_id=chat_id[0], text='O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!')
-        if texto != 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!':
-            texto = 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!'
+        bot.send_message(chat_id=chat_id[0], text='O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET!')
+        if texto != 'O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET!':
+            texto = 'O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET!'
             bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ ABERTO!')
 
 # define a função que irá atualizar as planilhas
@@ -75,7 +75,7 @@ def update_data():
 
         # percorre as linhas de horário da planilha de destino
         target_data = target_sheet.get_all_records()
-        target_sheet.update(f'C{1}:D{1}', [['HORA','POTÊNCIA CLIMATIZAÇÃO']])
+        target_sheet.update(f'E{1}:F{1}', [['HORA','POTÊNCIA CLIMATIZAÇÃO']])
         info_to_update = []
         dados = []
         num_linhas = 0
@@ -87,7 +87,7 @@ def update_data():
                     dados = [filtered_row['Hora'], filtered_row['Potência Ativa A']+filtered_row['Potência Ativa B']+filtered_row['Potência Ativa C']]
             info_to_update.append(dados)
             num_linhas = i
-        target_sheet.update(f'C2:D{num_linhas+2}', info_to_update)
+        target_sheet.update(f'E2:F{num_linhas+2}', info_to_update)
         print('Dados atualizados com sucesso!')
 
         verifica_planilha()
