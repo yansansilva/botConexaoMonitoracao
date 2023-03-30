@@ -41,6 +41,7 @@ def verifica_planilha():
     from datetime import datetime
     sheet = client.open_by_key(TARGET_SPREADSHEET_ID).sheet1
     ultima_linha = len(sheet.get_all_values())
+    st.write(ultima_linha)
     horario_atual = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
     st.write(horario_atual)
     horario_ultima_linha = sheet.acell(f'A{ultima_linha}').value
