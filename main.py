@@ -41,11 +41,8 @@ def verifica_planilha():
     from datetime import datetime
     sheet = client.open_by_key(TARGET_SPREADSHEET_ID).sheet1
     ultima_linha = len(sheet.col_values(1))
-    st.write(ultima_linha)
     horario_atual = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
-    st.write(horario_atual)
     horario_ultima_linha = sheet.acell(f'A{ultima_linha}').value
-    st.write(horario_ultima_linha)
     ultimo_horario = datetime.strptime(horario_ultima_linha, '%Y-%m-%d %H:%M:%S')
     if (datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - ultimo_horario.timestamp()) > intervalo_tempo:
         bot.send_message(chat_id=chat_id[0], text='PERDA DE CONEXÃO COM A INTERNET!')
