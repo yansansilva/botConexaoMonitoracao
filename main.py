@@ -91,8 +91,8 @@ def verifica_planilha():
             elif energia == 2:
                 print('O GEDAE ESTÁ ABERTO, MAS HOUVE QUEDA DE ENERGIA. RELIGUE O COMPUTADOR!')
                 bot.send_message(chat_id=chat_id[0], text='SOMENTE O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET, RELIGUE O COMPUTADOR!')
-                if texto != 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!':
-                    texto = 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!'
+                if texto != 'SOMENTE O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET, RELIGUE O COMPUTADOR!':
+                    texto = 'SOMENTE O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET, RELIGUE O COMPUTADOR!'
                     bot.send_message(chat_id=chat_id[1], text='ENERGIA RESTABELECIDA NO GEDAE!')
         else:
             print('O GEDAE ESTÁ FECHADO!')
@@ -100,13 +100,13 @@ def verifica_planilha():
             if texto != 'PERDA DE CONEXÃO COM A INTERNET E BAIXO CONSUMO DE ENERGIA!':
                 texto = 'PERDA DE CONEXÃO COM A INTERNET E BAIXO CONSUMO DE ENERGIA!'
                 bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ FECHADO!')
+        time.sleep(30)
     except:
         bot.send_message(chat_id=chat_id[0], text='LIMITE DE LEITURA POR MINUTO EXCEDIDO!')
         time.sleep(30)
         pass
     
 # agenda a execução da função a cada 1 minuto
-#schedule.every(80-datetime.datetime.now(tz).second).seconds.do(update_data)
 schedule.every(80-datetime.datetime.now(tz).second).seconds.do(verifica_planilha)
 
 texto = ''
