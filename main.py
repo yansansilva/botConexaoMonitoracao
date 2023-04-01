@@ -106,10 +106,7 @@ def verifica_planilha():
         pass
     
 # agenda a execução da função a cada 1 minuto
-if 0-datetime.datetime.now(tz).second!=0:
-    time.sleep(60-datetime.datetime.now(tz).second)
-#schedule.every(80-datetime.datetime.now(tz).second).seconds.do(verifica_planilha)
-schedule.every(60).seconds.do(verifica_planilha)
+schedule.every(80-datetime.datetime.now(tz).second).seconds.do(verifica_planilha)
 
 texto = ''
 # loop principal para executar o agendador de tarefas
