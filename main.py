@@ -100,14 +100,16 @@ def verifica_planilha():
             if texto != 'PERDA DE CONEXÃO COM A INTERNET E BAIXO CONSUMO DE ENERGIA!':
                 texto = 'PERDA DE CONEXÃO COM A INTERNET E BAIXO CONSUMO DE ENERGIA!'
                 bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ FECHADO!')
-        time.sleep(30)
     except:
         bot.send_message(chat_id=chat_id[0], text='LIMITE DE LEITURA POR MINUTO EXCEDIDO!')
-        time.sleep(30)
+        time.sleep(60-datetime.datetime.now(tz).second)
         pass
     
 # agenda a execução da função a cada 1 minuto
-schedule.every(80-datetime.datetime.now(tz).second).seconds.do(verifica_planilha)
+if 0-datetime.datetime.now(tz).second!=0:
+    time.sleep(60-datetime.datetime.now(tz).second)
+#schedule.every(80-datetime.datetime.now(tz).second).seconds.do(verifica_planilha)
+schedule.every(60).seconds.do(verifica_planilha)
 
 texto = ''
 # loop principal para executar o agendador de tarefas
