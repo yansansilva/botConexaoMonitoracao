@@ -20,25 +20,19 @@ chat_id = [chave[1], chave[2]]
 # Cria uma instância do bot Telegram
 bot = telebot.TeleBot(bot_token)
 
-@st.cache_data
-def acesso_GoogleSheets():
-    # credenciais do serviço
-    SCOPE = ['https://www.googleapis.com/auth/spreadsheets']
-    SERVICE_ACCOUNT_FILE = st.secrets["gcp_service_account"]
-    
-    # autenticação do serviço
-    creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_FILE, scopes=SCOPE,)
-    client = gspread.authorize(creds)
-    
-    # identificador das planilhas
-    planilha = st.secrets['lista_id_planilha']['id_planilha']
-    SOURCE_SPREADSHEET_ID = planilha[0]
-    TARGET_SPREADSHEET_ID = planilha[1]
-    
-    source_sheet = pd.DataFrame(client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1.get_all_records())
-    target_sheet = pd.DataFrame(client.open_by_key(TARGET_SPREADSHEET_ID).sheet1.get_all_records())
-    
-    return source_sheet, target_sheet
+
+# credenciais do serviço
+SCOPE = ['https://www.googleapis.com/auth/spreadsheets']
+SERVICE_ACCOUNT_FILE = st.secrets["gcp_service_account"]
+
+# autenticação do serviço
+creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_FILE, scopes=SCOPE,)
+client = gspread.authorize(creds)
+
+# identificador das planilhas
+planilha = st.secrets['lista_id_planilha']['id_planilha']
+SOURCE_SPREADSHEET_ID = planilha[0]
+TARGET_SPREADSHEET_ID = planilha[1]
 
 #Fuso horário brasileiro
 tz = pytz.timezone('America/Sao_Paulo')
@@ -49,7 +43,8 @@ def verifica_planilha():
     time.sleep(15)
     if garantir_execucao_unica:
         try:
-            source_sheet, target_sheet = acesso_GoogleSheets()
+            source_sheet = pd.DataFrame(client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1.get_all_records())
+            target_sheet = pd.DataFrame(client.open_by_key(TARGET_SPREADSHEET_ID).sheet1.get_all_records())
             horario_atual = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
             horário_ultima_linha_rpi = pd.to_datetime(target_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
             horário_ultima_linha_pc = pd.to_datetime(target_sheet['DATA-PC']).dropna().tail(1).reset_index(drop=True)[0]
