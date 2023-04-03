@@ -81,7 +81,7 @@ def verifica_planilha():
                 if energia == 0:
                     #print('O GEDAE ESTÁ ABERTO E TUDO ESTÁ FUNCIONANDO NORMALMENTE!')
                     bot.send_message(chat_id=chat_id[0], text='O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!')
-                    if texto != 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!' or texto != 'SOMENTE O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET, RELIGUE O COMPUTADOR!':
+                    if texto != 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!' or texto == 'SOMENTE O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET, RELIGUE O COMPUTADOR!':
                         texto = 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!'
                         bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ ABERTO!')
                 elif energia == 1:
