@@ -20,18 +20,25 @@ chat_id = [chave[1], chave[2]]
 # Cria uma instância do bot Telegram
 bot = telebot.TeleBot(bot_token)
 
-# credenciais do serviço
-SCOPE = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_FILE = st.secrets["gcp_service_account"]
-
-# autenticação do serviço
-creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_FILE, scopes=SCOPE,)
-client = gspread.authorize(creds)
-
-# identificador das planilhas
-planilha = st.secrets['lista_id_planilha']['id_planilha']
-SOURCE_SPREADSHEET_ID = planilha[0]
-TARGET_SPREADSHEET_ID = planilha[1]
+@st.cache_data
+def acesso_GoogleSheets():
+    # credenciais do serviço
+    SCOPE = ['https://www.googleapis.com/auth/spreadsheets']
+    SERVICE_ACCOUNT_FILE = st.secrets["gcp_service_account"]
+    
+    # autenticação do serviço
+    creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_FILE, scopes=SCOPE,)
+    client = gspread.authorize(creds)
+    
+    # identificador das planilhas
+    planilha = st.secrets['lista_id_planilha']['id_planilha']
+    SOURCE_SPREADSHEET_ID = planilha[0]
+    TARGET_SPREADSHEET_ID = planilha[1]
+    
+    source_sheet = pd.DataFrame(client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1.get_all_records())
+    target_sheet = pd.DataFrame(client.open_by_key(TARGET_SPREADSHEET_ID).sheet1.get_all_records())
+    
+    return source_sheet, target_sheet
 
 #Fuso horário brasileiro
 tz = pytz.timezone('America/Sao_Paulo')
@@ -39,10 +46,10 @@ tz = pytz.timezone('America/Sao_Paulo')
 # Função que verifica se já passou o intervalo de tempo definido e se houve novas linhas adicionadas na planilha
 def verifica_planilha():
     global texto, garantir_execucao_unica
+    time.sleep(15)
     if garantir_execucao_unica:
         try:
-            source_sheet = pd.DataFrame(client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1.get_all_records())
-            target_sheet = pd.DataFrame(client.open_by_key(TARGET_SPREADSHEET_ID).sheet1.get_all_records())
+            source_sheet, target_sheet = acesso_GoogleSheets()
             horario_atual = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
             horário_ultima_linha_rpi = pd.to_datetime(target_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
             horário_ultima_linha_pc = pd.to_datetime(target_sheet['DATA-PC']).dropna().tail(1).reset_index(drop=True)[0]
@@ -77,25 +84,25 @@ def verifica_planilha():
 
             if aberto == 1:
                 if energia == 0:
-                    print('O GEDAE ESTÁ ABERTO E TUDO ESTÁ FUNCIONANDO NORMALMENTE!')
+                    #print('O GEDAE ESTÁ ABERTO E TUDO ESTÁ FUNCIONANDO NORMALMENTE!')
                     bot.send_message(chat_id=chat_id[0], text='O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!')
-                    if texto != 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!':
+                    if texto != 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!' or texto != 'SOMENTE O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET, RELIGUE O COMPUTADOR!':
                         texto = 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!'
                         bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ ABERTO!')
                 elif energia == 1:
-                    print('O GEDAE ESTÁ SEM ENERGIA!')
+                    #print('O GEDAE ESTÁ SEM ENERGIA!')
                     bot.send_message(chat_id=chat_id[0], text='PERDA DE CONEXÃO COM A INTERNET E ALTO CONSUMO DE ENERGIA!')
                     if texto != 'PERDA DE CONEXÃO COM A INTERNET E ALTO CONSUMO DE ENERGIA!':
                         texto = 'PERDA DE CONEXÃO COM A INTERNET E ALTO CONSUMO DE ENERGIA!'
                         bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ SEM ENERGIA!')
                 elif energia == 2:
-                    print('O GEDAE ESTÁ ABERTO, MAS HOUVE QUEDA DE ENERGIA. RELIGUE O COMPUTADOR!')
+                    #print('O GEDAE ESTÁ ABERTO, MAS HOUVE QUEDA DE ENERGIA. RELIGUE O COMPUTADOR!')
                     bot.send_message(chat_id=chat_id[0], text='SOMENTE O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET, RELIGUE O COMPUTADOR!')
                     if texto != 'SOMENTE O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET, RELIGUE O COMPUTADOR!':
                         texto = 'SOMENTE O RASPBERRY PI ESTÁ CONECTADO COM A INTERNET, RELIGUE O COMPUTADOR!'
                         bot.send_message(chat_id=chat_id[1], text='ENERGIA RESTABELECIDA NO GEDAE!')
             else:
-                print('O GEDAE ESTÁ FECHADO!')
+                #print('O GEDAE ESTÁ FECHADO!')
                 bot.send_message(chat_id=chat_id[0], text='PERDA DE CONEXÃO COM A INTERNET E BAIXO CONSUMO DE ENERGIA!')
                 if texto != 'PERDA DE CONEXÃO COM A INTERNET E BAIXO CONSUMO DE ENERGIA!':
                     texto = 'PERDA DE CONEXÃO COM A INTERNET E BAIXO CONSUMO DE ENERGIA!'
@@ -107,7 +114,8 @@ def verifica_planilha():
         garantir_execucao_unica = False
     
 # agenda a execução da função a cada 1 minuto
-schedule.every(80-datetime.now(tz).second).seconds.do(verifica_planilha)
+time.sleep(60-datetime.now(tz).second)
+schedule.every(60).seconds.do(verifica_planilha)
 
 texto = ''
 # loop principal para executar o agendador de tarefas
