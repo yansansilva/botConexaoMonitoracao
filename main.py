@@ -66,8 +66,14 @@ def verifica_planilha():
             hora_ultimo_consumo = pd.to_datetime(source_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
             st.write('ETAPA 4: CONCLUIDA')
             rpi_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horário_ultima_linha_rpi.timestamp() <= intervalo_tempo
+            st.write(f'''ETAPA 5: CONCLUIDA
+                     {rpi_on}''')
             pc_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horário_ultima_linha_pc.timestamp() <= intervalo_tempo
+            st.write(f'''ETAPA 6: CONCLUIDA
+                     {pc_on}''')
             consumo_alto = consumo_ultima_linha > referencia_consumo
+            st.write(f'''ETAPA 6: CONCLUIDA
+                     {consumo_alto}''')
 
             condicao_1 = not rpi_on and not pc_on and consumo_alto
             condicao_2 = not pc_on and (rpi_on or consumo_alto)
