@@ -37,8 +37,6 @@ TARGET_SPREADSHEET_ID = planilha[1]
 #Fuso horário brasileiro
 tz = pytz.timezone('America/Sao_Paulo')
 
-st.write('ETAPA 1: CONCLUIDA')
-
 # Função que verifica se já passou o intervalo de tempo definido e se houve novas linhas adicionadas na planilha
 def verifica_planilha():
     global texto, garantir_execucao_unica
@@ -46,34 +44,17 @@ def verifica_planilha():
     if garantir_execucao_unica:
         try:
             source_sheet = pd.DataFrame(client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1.get_all_records())
-            st.write(f'''ETAPA 2: CONCLUIDA
-                     {source_sheet}''')
             target_sheet = pd.DataFrame(client.open_by_key(TARGET_SPREADSHEET_ID).sheet1.get_all_records())
-            st.write(f'''ETAPA 3: CONCLUIDA
-                     {target_sheet}''')
+
             horario_atual = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
-            st.write(f'''ETAPA 3.1: CONCLUIDA
-                     {horario_atual}''')
-            horário_ultima_linha_rpi = pd.to_datetime(target_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
-            st.write(f'''ETAPA 3.2: CONCLUIDA
-                     {horário_ultima_linha_rpi}''')
-            horário_ultima_linha_pc = pd.to_datetime(target_sheet['DATA-PC']).dropna().tail(1).reset_index(drop=True)[0]
-            st.write(f'''ETAPA 3.3: CONCLUIDA
-                     {horário_ultima_linha_pc}''')
+            horario_ultima_linha_rpi = pd.to_datetime(target_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
+            horario_ultima_linha_pc = pd.to_datetime(target_sheet['DATA-PC']).dropna().tail(1).reset_index(drop=True)[0]
             consumo_ultima_linha = source_sheet[['Potência Ativa A', 'Potência Ativa B', 'Potência Ativa C']].tail(1).reset_index(drop=True).sum(axis=1)[0]
-            st.write(f'''ETAPA 3.4: CONCLUIDA
-                     {consumo_ultima_linha}''')
-            hora_ultimo_consumo = pd.to_datetime(source_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
-            st.write('ETAPA 4: CONCLUIDA')
-            rpi_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horário_ultima_linha_rpi.timestamp() <= intervalo_tempo
-            st.write(f'''ETAPA 5: CONCLUIDA
-                     {rpi_on}''')
-            pc_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horário_ultima_linha_pc.timestamp() <= intervalo_tempo
-            st.write(f'''ETAPA 6: CONCLUIDA
-                     {pc_on}''')
+            hora_ultimo_consumo = pd.to_datetime(source_sheet['Hora']).dropna().tail(1).reset_index(drop=True)
+
+            rpi_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horario_ultima_linha_rpi.timestamp() <= intervalo_tempo
+            pc_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horario_ultima_linha_pc.timestamp() <= intervalo_tempo
             consumo_alto = consumo_ultima_linha > referencia_consumo
-            st.write(f'''ETAPA 6: CONCLUIDA
-                     {consumo_alto}''')
 
             condicao_1 = not rpi_on and not pc_on and consumo_alto
             condicao_2 = not pc_on and (rpi_on or consumo_alto)
@@ -97,7 +78,7 @@ def verifica_planilha():
             else:
                 aberto = 0
                 #print('O GEDAE ESTÁ FECHADO!')
-            st.write('ETAPA 5: CONCLUIDA')
+
             if aberto == 1:
                 if energia == 0:
                     #print('O GEDAE ESTÁ ABERTO E TUDO ESTÁ FUNCIONANDO NORMALMENTE!')
@@ -106,7 +87,7 @@ def verifica_planilha():
                         texto = 'O COMPUTADOR ESTÁ CONECTADO COM A INTERNET!'
                         bot.send_message(chat_id=chat_id[1], text='O GEDAE ESTÁ ABERTO!')
                 elif energia == 1:
-                    if hora_ultimo_consumo.dt.hour < 18:
+                    if hora_ultimo_consumo.dt.hour[0] < 18:
                         #print('O GEDAE ESTÁ SEM ENERGIA!')
                         bot.send_message(chat_id=chat_id[0], text='PERDA DE CONEXÃO COM A INTERNET E ALTO CONSUMO DE ENERGIA!')
                         if texto != 'PERDA DE CONEXÃO COM A INTERNET E ALTO CONSUMO DE ENERGIA!':
