@@ -47,23 +47,23 @@ if st.button("Iniciar Robô"):
         if garantir_execucao_unica:
             try:
                 source_sheet = pd.DataFrame(client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1.get_all_records())
-                st.write(f'ETAPA 2: CONCLUIDA
-                         {source_sheet}')
+                st.write(f'''ETAPA 2: CONCLUIDA
+                         {source_sheet}''')
                 target_sheet = pd.DataFrame(client.open_by_key(TARGET_SPREADSHEET_ID).sheet1.get_all_records())
-                st.write('ETAPA 3: CONCLUIDA
-                         {target_sheet}')
+                st.write(f'''ETAPA 3: CONCLUIDA
+                         {target_sheet}''')
                 horario_atual = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
-                st.write('ETAPA 3.1: CONCLUIDA
-                         {horario_atual}')
+                st.write(f'''ETAPA 3.1: CONCLUIDA
+                         {horario_atual}''')
                 horário_ultima_linha_rpi = pd.to_datetime(target_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
-                st.write('ETAPA 3.2: CONCLUIDA
-                         {horário_ultima_linha_rpi}')
+                st.write(f'''ETAPA 3.2: CONCLUIDA
+                         {horário_ultima_linha_rpi}''')
                 horário_ultima_linha_pc = pd.to_datetime(target_sheet['DATA-PC']).dropna().tail(1).reset_index(drop=True)[0]
-                st.write('ETAPA 3.3: CONCLUIDA
-                         {horário_ultima_linha_pc}')
+                st.write(f'''ETAPA 3.3: CONCLUIDA
+                         {horário_ultima_linha_pc}''')
                 consumo_ultima_linha = source_sheet[['Potência Ativa A', 'Potência Ativa B', 'Potência Ativa C']].tail(1).reset_index(drop=True).sum(axis=1)[0]
-                st.write('ETAPA 3.4: CONCLUIDA
-                         {consumo_ultima_linha}')
+                st.write(f'''ETAPA 3.4: CONCLUIDA
+                         {consumo_ultima_linha}''')
                 hora_ultimo_consumo = pd.to_datetime(source_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
                 st.write('ETAPA 4: CONCLUIDA')
                 rpi_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horário_ultima_linha_rpi.timestamp() <= intervalo_tempo
