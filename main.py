@@ -37,7 +37,9 @@ if st.button("Iniciar Robô"):
 
     #Fuso horário brasileiro
     tz = pytz.timezone('America/Sao_Paulo')
-
+    
+    print('ETAPA 1: CONCLUIDA')
+    
     # Função que verifica se já passou o intervalo de tempo definido e se houve novas linhas adicionadas na planilha
     def verifica_planilha():
         global texto, garantir_execucao_unica
@@ -45,13 +47,15 @@ if st.button("Iniciar Robô"):
         if garantir_execucao_unica:
             try:
                 source_sheet = pd.DataFrame(client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1.get_all_records())
+                print('ETAPA 2: CONCLUIDA')
                 target_sheet = pd.DataFrame(client.open_by_key(TARGET_SPREADSHEET_ID).sheet1.get_all_records())
+                print('ETAPA 3: CONCLUIDA')
                 horario_atual = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
                 horário_ultima_linha_rpi = pd.to_datetime(target_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
                 horário_ultima_linha_pc = pd.to_datetime(target_sheet['DATA-PC']).dropna().tail(1).reset_index(drop=True)[0]
                 consumo_ultima_linha = source_sheet[['Potência Ativa A', 'Potência Ativa B', 'Potência Ativa C']].tail(1).reset_index(drop=True).sum(axis=1)[0]
                 hora_ultimo_consumo = pd.to_datetime(source_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
-
+                print('ETAPA 4: CONCLUIDA')
                 rpi_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horário_ultima_linha_rpi.timestamp() <= intervalo_tempo
                 pc_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horário_ultima_linha_pc.timestamp() <= intervalo_tempo
                 consumo_alto = consumo_ultima_linha > referencia_consumo
@@ -78,7 +82,7 @@ if st.button("Iniciar Robô"):
                 else:
                     aberto = 0
                     #print('O GEDAE ESTÁ FECHADO!')
-
+                print('ETAPA 5: CONCLUIDA')
                 if aberto == 1:
                     if energia == 0:
                         #print('O GEDAE ESTÁ ABERTO E TUDO ESTÁ FUNCIONANDO NORMALMENTE!')
