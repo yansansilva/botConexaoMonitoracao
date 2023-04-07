@@ -130,12 +130,12 @@ def verifica_planilha():
             pass
         garantir_execucao_unica = False
 
-# agenda a execução da função a cada 1 minuto
-time.sleep(60-datetime.now(tz).second)
-schedule.every(60).seconds.do(verifica_planilha)
-
-texto = ''
 if st.button("Iniciar Robô"):
+    # agenda a execução da função a cada 1 minuto
+    time.sleep(60-datetime.now(tz).second)
+    schedule.every(60).seconds.do(verifica_planilha)
+
+    texto = ''
     # loop principal para executar o agendador de tarefas
     while True:
         garantir_execucao_unica = True
