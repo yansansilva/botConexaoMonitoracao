@@ -9,6 +9,7 @@ import pytz
 import pandas as pd
 
 # Define o intervalo de tempo desejado em segundos
+#intervalo_tempo = 70
 intervalo_tempo = 90
 referencia_consumo = 1350
 
