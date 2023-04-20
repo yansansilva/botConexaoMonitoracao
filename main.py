@@ -45,21 +45,38 @@ def verifica_planilha():
         try:
             source_sheet = pd.DataFrame(client.open_by_key(SOURCE_SPREADSHEET_ID).sheet1.get_all_records())
             target_sheet = pd.DataFrame(client.open_by_key(TARGET_SPREADSHEET_ID).sheet1.get_all_records())
-
-            horario_atual = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
+    
+            horario_atual = datetime.strftime(datetime.now().replace(tzinfo=pytz.utc).astimezone(tz), '%Y-%m-%d %H:%M:%S')
             horario_ultima_linha_rpi = pd.to_datetime(target_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
             horario_ultima_linha_pc = pd.to_datetime(target_sheet['DATA-PC']).dropna().tail(1).reset_index(drop=True)[0]
             consumo_ultima_linha = source_sheet[['Potência Ativa A', 'Potência Ativa B', 'Potência Ativa C']].tail(1).reset_index(drop=True).sum(axis=1)[0]
             hora_ultimo_consumo = pd.to_datetime(source_sheet['Hora']).dropna().tail(1).reset_index(drop=True)
-
+    
             rpi_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horario_ultima_linha_rpi.timestamp() <= intervalo_tempo
             pc_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horario_ultima_linha_pc.timestamp() <= intervalo_tempo
             consumo_alto = consumo_ultima_linha > referencia_consumo
-
+    
             condicao_1 = not rpi_on and not pc_on and consumo_alto
             condicao_2 = not pc_on and (rpi_on or consumo_alto)
             condicao_3 = rpi_on or pc_on or consumo_alto
-
+            
+            # Para debbuging do código 
+            st.write(f''' \n
+            hora atual: {horario_atual} \n
+            hora rpi: {horario_ultima_linha_rpi} \n
+            hora pc: {horario_ultima_linha_pc} \n
+            consumo: {consumo_ultima_linha} \n \n
+            horario atual: {datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp()} : {datetime.now()} \n
+            ultimo horario rpi: {horario_ultima_linha_rpi.timestamp()} \n
+            ultimo horario pc: {horario_ultima_linha_pc.timestamp()} \n \n
+            rpi_on: {datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horario_ultima_linha_rpi.timestamp()} : {rpi_on} \n
+            pc_on: {datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horario_ultima_linha_pc.timestamp()} : {pc_on} \n
+            consumo_alto: {consumo_alto} \n \n
+            Condição 1: {condicao_1} \n
+            Condição 2: {condicao_2} \n
+            Condição 3: {condicao_3} \n
+            -----------------------------------------------------------------------------''')
+    
             energia = 0
             if condicao_1:
                 energia = 1
@@ -70,7 +87,7 @@ def verifica_planilha():
             else:
                 #print('O GEDAE ESTÁ FUNCIONANDO NORMALMENTE!')
                 pass
-
+    
             aberto = 1
             if condicao_3:
                 #print('O GEDAE ESTÁ ABERTO!')
@@ -78,7 +95,7 @@ def verifica_planilha():
             else:
                 aberto = 0
                 #print('O GEDAE ESTÁ FECHADO!')
-
+    
             if aberto == 1:
                 if energia == 0:
                     #print('O GEDAE ESTÁ ABERTO E TUDO ESTÁ FUNCIONANDO NORMALMENTE!')
