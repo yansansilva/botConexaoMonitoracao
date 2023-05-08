@@ -49,13 +49,21 @@ def verifica_planilha():
     
             horario_atual = datetime.strftime(datetime.now().replace(tzinfo=pytz.utc).astimezone(tz), '%Y-%m-%d %H:%M:%S')
             horario_ultima_linha_rpi = pd.to_datetime(target_sheet['DATA-RPI']).dropna().tail(1).reset_index(drop=True)[0]
-            horario_ultima_linha_pc = pd.to_datetime(target_sheet['DATA-PC']).dropna().tail(1).reset_index(drop=True)[0]
+            try:
+                horario_ultima_linha_pc = pd.to_datetime(target_sheet['DATA-PC']).dropna().tail(1).reset_index(drop=True)[0]
+                horario_ultima_linha_pc_debugging = horario_ultima_linha_pc.timestamp()
+            except:
+                horario_ultima_linha_pc_debugging = 'PC Desligado!'
             consumo_ultima_linha = source_sheet[['Potência Ativa A', 'Potência Ativa B', 'Potência Ativa C']].tail(1).reset_index(drop=True).sum(axis=1)[0]
             hora_ultimo_consumo = pd.to_datetime(source_sheet['Hora']).dropna().tail(1).reset_index(drop=True)
     
             rpi_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horario_ultima_linha_rpi.timestamp() <= intervalo_tempo
-            pc_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horario_ultima_linha_pc.timestamp() <= intervalo_tempo
-            consumo_alto = consumo_ultima_linha > referencia_consumo
+            try:
+                pc_on = datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horario_ultima_linha_pc.timestamp() <= intervalo_tempo
+                consumo_alto = consumo_ultima_linha > referencia_consumo
+            except:
+                pc_on = False
+                consumo_alto = False
     
             condicao_1 = not rpi_on and not pc_on and consumo_alto
             condicao_2 = not pc_on and (rpi_on or consumo_alto)
@@ -69,9 +77,9 @@ def verifica_planilha():
             consumo: {consumo_ultima_linha} \n \n
             horario atual: {datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp()} : {datetime.now()} \n
             ultimo horario rpi: {horario_ultima_linha_rpi.timestamp()} \n
-            ultimo horario pc: {horario_ultima_linha_pc.timestamp()} \n \n
-            rpi_on: {datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horario_ultima_linha_rpi.timestamp()} : {rpi_on} \n
-            pc_on: {datetime.strptime(horario_atual, '%Y-%m-%d %H:%M:%S').timestamp() - horario_ultima_linha_pc.timestamp()} : {pc_on} \n
+            ultimo horario pc: {horario_ultima_linha_pc_debugging} \n \n
+            rpi_on: {rpi_on} \n
+            pc_on: {pc_on} \n
             consumo_alto: {consumo_alto} \n \n
             Condição 1: {condicao_1} \n
             Condição 2: {condicao_2} \n
