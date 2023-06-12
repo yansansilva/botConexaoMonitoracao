@@ -184,4 +184,4 @@ if st.text_input('Senha: ') == st.secrets['senha']['senha']:
         garantir_execucao_unica = True
         schedule.run_pending()
 else:
-    st.write('Senha inválida! Tente novamente.')
+    st.write('Digite a senha!')
