@@ -172,7 +172,8 @@ def verifica_planilha():
         garantir_execucao_unica = False
 
 
-if st.button("Iniciar Robô"):
+#if st.button("Iniciar Robô"):
+if st.text_input('Senha: ') == st.secrets['senha']['senha']:
     # agenda a execução da função a cada 1 minuto
     time.sleep(60 - datetime.now(tz).second)
     schedule.every(60).seconds.do(verifica_planilha)
@@ -182,3 +183,5 @@ if st.button("Iniciar Robô"):
     while True:
         garantir_execucao_unica = True
         schedule.run_pending()
+else:
+    st.write('Senha inválida! Tente novamente.')
